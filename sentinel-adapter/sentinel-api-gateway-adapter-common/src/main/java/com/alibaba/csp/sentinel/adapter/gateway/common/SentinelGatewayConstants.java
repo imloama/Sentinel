@@ -48,5 +48,8 @@ public final class SentinelGatewayConstants {
     public static final String GATEWAY_NOT_MATCH_PARAM = "$NM";
     public static final String GATEWAY_DEFAULT_PARAM = "$D";
 
+    public static final String PROXY_HEADER_X_FORWARD_FOR = "X-Forward-For";
+    public static final String PROXY_HEADER_X_REAL_IP = "X-Real-IP";
+
     private SentinelGatewayConstants() {}
 }
