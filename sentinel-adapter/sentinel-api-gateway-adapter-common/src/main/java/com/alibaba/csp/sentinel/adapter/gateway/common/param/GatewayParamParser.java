@@ -101,7 +101,13 @@ public class GatewayParamParser<T> {
     }
 
     private String parseClientIp(/*@Valid*/ GatewayParamFlowItem item, T request) {
-        String clientIp = requestItemParser.getRemoteAddress(request);
+        String clientIp = requestItemParser.getHeader(request, SentinelGatewayConstants.PROXY_HEADER_X_REAL_IP);
+        if(StringUtil.isEmpty(clientIp)){
+            clientIp = requestItemParser.getHeader(request, SentinelGatewayConstants.PROXY_HEADER_X_FORWARD_FOR);
+            if(StringUtil.isEmpty(clientIp)){
+                clientIp = requestItemParser.getRemoteAddress(request);
+            }
+        }
         String pattern = item.getPattern();
         if (StringUtil.isEmpty(pattern)) {
             return clientIp;
