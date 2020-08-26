@@ -3,6 +3,7 @@ package com.alibaba.csp.sentinel.dashboard.storage.redis;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -23,7 +24,7 @@ import com.alibaba.fastjson.JSONObject;
  * @copyright ©2019-2020 xxxx，版权所有。
  */
 @Component("flowRuleRedisProvider")
-public class FlowRuleRedisProvider implements DynamicRuleProvider<List<FlowRuleEntity>> {
+public class FlowRuleRedisProvider implements DynamicRuleProvider<List<GatewayFlowRuleEntity>> {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -32,13 +33,13 @@ public class FlowRuleRedisProvider implements DynamicRuleProvider<List<FlowRuleE
     private RuleConstants ruleConstants;
 
     @Override
-    public List<FlowRuleEntity> getRules(String appName) throws Exception {
+    public List<GatewayFlowRuleEntity> getRules(String appName) throws Exception {
         System.out.println("Sentinel 从Redis拉取规则 begin >>>>>>>>>>>>>>>>>>>>");
         String value = (String) redisTemplate.opsForValue().get(ruleConstants.ruleFlow + appName);
         if (StringUtils.isEmpty(value)){
             return new ArrayList<>();
         }
         System.out.println("Sentinel 从Redis拉取规则 end >>>>>>>>>>>>>>>>>>>>");
-        return JSONObject.parseArray(value,FlowRuleEntity.class);
+        return JSONObject.parseArray(value,GatewayFlowRuleEntity.class);
     }
 }

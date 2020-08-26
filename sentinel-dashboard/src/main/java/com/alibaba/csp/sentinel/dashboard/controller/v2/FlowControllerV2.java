@@ -59,10 +59,10 @@ public class FlowControllerV2 {
     private InMemoryRuleRepositoryAdapter<FlowRuleEntity> repository;
 
     @Autowired
-    @Qualifier("flowRuleRedisProvider")// flowRuleDefaultProvider
+    @Qualifier("flowRuleDefaultProvider")// flowRuleDefaultProvider
     private DynamicRuleProvider<List<FlowRuleEntity>> ruleProvider;
     @Autowired
-    @Qualifier("flowRuleRedisPublisher")//flowRuleDefaultPublisher
+    @Qualifier("flowRuleDefaultPublisher")//flowRuleDefaultPublisher
     private DynamicRulePublisher<List<FlowRuleEntity>> rulePublisher;
 
 
