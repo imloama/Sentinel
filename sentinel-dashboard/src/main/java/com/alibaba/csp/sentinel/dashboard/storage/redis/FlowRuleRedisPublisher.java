@@ -3,6 +3,7 @@ package com.alibaba.csp.sentinel.dashboard.storage.redis;
 
 import java.util.List;
 
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
 import com.alibaba.fastjson.JSONObject;
 import com.fasterxml.jackson.annotation.JsonAlias;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +24,7 @@ import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
  * @copyright ©2019-2020 xxxx，版权所有。
  */
 @Component("flowRuleRedisPublisher")
-public class FlowRuleRedisPublisher implements DynamicRulePublisher<List<FlowRuleEntity>> {
+public class FlowRuleRedisPublisher implements DynamicRulePublisher<List<GatewayFlowRuleEntity>> {
 
     @Autowired
     private RedisTemplate<String, Object> redisTemplate;
@@ -32,7 +33,7 @@ public class FlowRuleRedisPublisher implements DynamicRulePublisher<List<FlowRul
     private RuleConstants ruleConstants;
 
     @Override
-    public void publish(String app, List<FlowRuleEntity> rules) throws Exception {
+    public void publish(String app, List<GatewayFlowRuleEntity> rules) throws Exception {
         System.out.println("Sentinel 向Redis推送规则 begin >>>>>>>>>>>>>>>>>>>>");
         if (rules == null){
             return;
