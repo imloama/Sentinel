@@ -39,7 +39,9 @@ public class RedisStorageService {
     public List<ApiDefinitionEntity> getAPI(String app){
         String key = PREFIX + app + ":" + KEY_API;
         String value = this.redisTemplate.opsForValue().get(key);
-        if(StringUtil.isBlank(value))return new ArrayList<>();
+        if(StringUtil.isBlank(value)) {
+            return new ArrayList<>();
+        }
         return JSONObject.parseArray(value, ApiDefinitionEntity.class);
     }
 
@@ -51,7 +53,9 @@ public class RedisStorageService {
     public List<GatewayFlowRuleEntity> getFlow(String app){
         String key = PREFIX + app + ":" + KEY_FLOW;
         String value = this.redisTemplate.opsForValue().get(key);
-        if(StringUtil.isBlank(value))return new ArrayList<>();
+        if(StringUtil.isBlank(value)) {
+            return new ArrayList<>();
+        }
         return JSONObject.parseArray(value, GatewayFlowRuleEntity.class);
     }
 
@@ -63,7 +67,9 @@ public class RedisStorageService {
     public List<DegradeRuleEntity> getDegrade(String app){
         String key = PREFIX + app + ":" + KEY_DEGRADE;
         String value = this.redisTemplate.opsForValue().get(key);
-        if(StringUtil.isBlank(value))return new ArrayList<>();
+        if(StringUtil.isBlank(value)) {
+            return new ArrayList<>();
+        }
         return JSONObject.parseArray(value, DegradeRuleEntity.class);
     }
 
@@ -76,7 +82,9 @@ public class RedisStorageService {
     public List<SystemRuleEntity> getSystem(String app){
         String key = PREFIX + app + ":" + KEY_DEGRADE;
         String value = this.redisTemplate.opsForValue().get(key);
-        if(StringUtil.isBlank(value))return new ArrayList<>();
+        if(StringUtil.isBlank(value)) {
+            return new ArrayList<>();
+        }
         return JSONObject.parseArray(value, SystemRuleEntity.class);
     }
 
