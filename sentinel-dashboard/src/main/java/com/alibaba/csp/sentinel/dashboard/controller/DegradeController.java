@@ -23,6 +23,7 @@ import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
 import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
 import com.alibaba.csp.sentinel.dashboard.repository.rule.RuleRepository;
+import com.alibaba.csp.sentinel.dashboard.storage.redis.RedisStorageService;
 import com.alibaba.csp.sentinel.slots.block.RuleConstant;
 import com.alibaba.csp.sentinel.slots.block.degrade.circuitbreaker.CircuitBreakerStrategy;
 import com.alibaba.csp.sentinel.util.StringUtil;
@@ -58,6 +59,8 @@ public class DegradeController {
     private RuleRepository<DegradeRuleEntity, Long> repository;
     @Autowired
     private SentinelApiClient sentinelApiClient;
+    @Autowired
+    private RedisStorageService redisStorageService;
 
     @GetMapping("/rules.json")
     @AuthAction(PrivilegeType.READ_RULE)
@@ -72,7 +75,14 @@ public class DegradeController {
             return Result.ofFail(-1, "port can't be null");
         }
         try {
-            List<DegradeRuleEntity> rules = sentinelApiClient.fetchDegradeRuleOfMachine(app, ip, port);
+            String key = String.format("%s:%s:%s", app, ip, port);
+            List<DegradeRuleEntity> rules = this.redisStorageService.getDegrade(key);
+            if(rules!=null&&!rules.isEmpty()){
+                this.sentinelApiClient.setDegradeRuleOfMachine(app, ip, port, rules);
+            }else{
+                rules = sentinelApiClient.fetchDegradeRuleOfMachine(app, ip, port);
+                redisStorageService.putDegrade(key, rules);
+            }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
@@ -163,6 +173,7 @@ public class DegradeController {
 
     private boolean publishRules(String app, String ip, Integer port) {
         List<DegradeRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
+        this.redisStorageService.putDegrade(app+":"+ip+":"+port, rules);
         return sentinelApiClient.setDegradeRuleOfMachine(app, ip, port, rules);
     }
 

@@ -30,6 +30,7 @@ import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.rule.UpdateFlowRuleR
 import com.alibaba.csp.sentinel.dashboard.repository.gateway.InMemGatewayFlowRuleStore;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRuleProvider;
 import com.alibaba.csp.sentinel.dashboard.rule.DynamicRulePublisher;
+import com.alibaba.csp.sentinel.dashboard.storage.redis.RedisStorageService;
 import com.alibaba.csp.sentinel.util.StringUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,15 +60,16 @@ public class GatewayFlowRuleController {
 
     @Autowired
     private InMemGatewayFlowRuleStore repository;
-
     @Autowired
     private SentinelApiClient sentinelApiClient;
     @Autowired
-    @Qualifier("flowRuleRedisProvider")// flowRuleDefaultProvider
-    private DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider;
-    @Autowired
-    @Qualifier("flowRuleRedisPublisher")//flowRuleDefaultPublisher
-    private DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher;
+    private RedisStorageService redisStorageService;
+//    @Autowired
+//    @Qualifier("flowRuleRedisProvider")// flowRuleDefaultProvider
+//    private DynamicRuleProvider<List<GatewayFlowRuleEntity>> ruleProvider;
+//    @Autowired
+//    @Qualifier("flowRuleRedisPublisher")//flowRuleDefaultPublisher
+//    private DynamicRulePublisher<List<GatewayFlowRuleEntity>> rulePublisher;
 
     @GetMapping("/list.json")
     @AuthAction(AuthService.PrivilegeType.READ_RULE)
@@ -84,10 +86,11 @@ public class GatewayFlowRuleController {
         }
 
         try {
-            List<GatewayFlowRuleEntity> rules = ruleProvider.getRules(app);
+            String key = app+":"+ip+":"+port;
+            List<GatewayFlowRuleEntity> rules = this.redisStorageService.getFlow(key);
             if(rules.isEmpty()){
                 rules = sentinelApiClient.fetchGatewayFlowRules(app, ip, port).get();
-                this.rulePublisher.publish(app, rules);
+                this.redisStorageService.putFlow(key, rules);
                 repository.saveAll(rules);
             }else{
                 repository.saveAll(rules);
@@ -443,11 +446,8 @@ public class GatewayFlowRuleController {
     private boolean publishRules(String app, String ip, Integer port, boolean publish) {
         List<GatewayFlowRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
         if(publish){
-            try {
-                this.rulePublisher.publish(app, rules);
-            } catch (Exception e) {
-                logger.error("同步规则数据失败！", e);
-            }
+            String key = app+":"+ip+":"+port;
+           this.redisStorageService.putFlow(key, rules);
         }
         return sentinelApiClient.modifyGatewayFlowRules(app, ip, port, rules);
     }

@@ -1,0 +1,86 @@
+package com.alibaba.csp.sentinel.dashboard.storage.redis;
+
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.ApiDefinitionEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.GatewayFlowRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.DegradeRuleEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.SystemRuleEntity;
+import com.alibaba.csp.sentinel.util.StringUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Component
+public class RedisStorageService {
+
+    public static final String PREFIX = "sentinel:gateway:";
+    //api规则
+    public static final String KEY_API = "api";
+    //流控规则
+    public static final String KEY_FLOW = "flow";
+    //降级规则
+    public static final String KEY_DEGRADE = "degrade";
+    //系统规则
+    public static final String KEY_SYSTEM = "system";
+
+    @Autowired
+    private StringRedisTemplate redisTemplate;
+
+    public void putAPI(String app,List<ApiDefinitionEntity> list){
+        String key = PREFIX + app + ":" + KEY_API;
+        this.redisTemplate.opsForValue().set(key, JSON.toJSONString(list), 0);
+    }
+
+    public List<ApiDefinitionEntity> getAPI(String app){
+        String key = PREFIX + app + ":" + KEY_API;
+        String value = this.redisTemplate.opsForValue().get(key);
+        if(StringUtil.isBlank(value))return new ArrayList<>();
+        return JSONObject.parseArray(value, ApiDefinitionEntity.class);
+    }
+
+    public void putFlow(String app,List<GatewayFlowRuleEntity> list){
+        String key = PREFIX + app + ":" + KEY_FLOW;
+        this.redisTemplate.opsForValue().set(key, JSON.toJSONString(list), 0);
+    }
+
+    public List<GatewayFlowRuleEntity> getFlow(String app){
+        String key = PREFIX + app + ":" + KEY_FLOW;
+        String value = this.redisTemplate.opsForValue().get(key);
+        if(StringUtil.isBlank(value))return new ArrayList<>();
+        return JSONObject.parseArray(value, GatewayFlowRuleEntity.class);
+    }
+
+    public void putDegrade(String app,List<DegradeRuleEntity> list){
+        String key = PREFIX + app + ":" + KEY_DEGRADE;
+        this.redisTemplate.opsForValue().set(key, JSON.toJSONString(list), 0);
+    }
+
+    public List<DegradeRuleEntity> getDegrade(String app){
+        String key = PREFIX + app + ":" + KEY_DEGRADE;
+        String value = this.redisTemplate.opsForValue().get(key);
+        if(StringUtil.isBlank(value))return new ArrayList<>();
+        return JSONObject.parseArray(value, DegradeRuleEntity.class);
+    }
+
+
+    public void putSystem(String app,List<SystemRuleEntity> list){
+        String key = PREFIX + app + ":" + KEY_DEGRADE;
+        this.redisTemplate.opsForValue().set(key, JSON.toJSONString(list), 0);
+    }
+
+    public List<SystemRuleEntity> getSystem(String app){
+        String key = PREFIX + app + ":" + KEY_DEGRADE;
+        String value = this.redisTemplate.opsForValue().get(key);
+        if(StringUtil.isBlank(value))return new ArrayList<>();
+        return JSONObject.parseArray(value, SystemRuleEntity.class);
+    }
+
+
+
+
+}

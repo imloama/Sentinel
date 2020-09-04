@@ -21,6 +21,7 @@ import java.util.List;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthAction;
 import com.alibaba.csp.sentinel.dashboard.auth.AuthService.PrivilegeType;
 import com.alibaba.csp.sentinel.dashboard.repository.rule.RuleRepository;
+import com.alibaba.csp.sentinel.dashboard.storage.redis.RedisStorageService;
 import com.alibaba.csp.sentinel.util.StringUtil;
 
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.SystemRuleEntity;
@@ -48,6 +49,8 @@ public class SystemController {
     private RuleRepository<SystemRuleEntity, Long> repository;
     @Autowired
     private SentinelApiClient sentinelApiClient;
+    @Autowired
+    private RedisStorageService redisStorageService;
 
     private <R> Result<R> checkBasicParams(String app, String ip, Integer port) {
         if (StringUtil.isEmpty(app)) {
@@ -74,7 +77,14 @@ public class SystemController {
             return checkResult;
         }
         try {
-            List<SystemRuleEntity> rules = sentinelApiClient.fetchSystemRuleOfMachine(app, ip, port);
+            String key = String.format("%s:%s:%s", app, ip, port);
+            List<SystemRuleEntity> rules = this.redisStorageService.getSystem(key);
+            if(rules!=null&&!rules.isEmpty()){
+                this.sentinelApiClient.setSystemRuleOfMachine(app, ip, port, rules);
+            }else{
+                rules = sentinelApiClient.fetchSystemRuleOfMachine(app, ip, port);
+                this.redisStorageService.putSystem(key, rules);
+            }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
         } catch (Throwable throwable) {
@@ -245,6 +255,7 @@ public class SystemController {
 
     private boolean publishRules(String app, String ip, Integer port) {
         List<SystemRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
+        this.redisStorageService.putSystem(app+":"+ip+":"+port, rules);
         return sentinelApiClient.setSystemRuleOfMachine(app, ip, port, rules);
     }
 }
