@@ -172,7 +172,7 @@ public class DegradeController {
 
     private boolean publishRules(String app, String ip, Integer port) {
         List<DegradeRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
-        this.redisStorageService.putDegrade(app+":"+ip+":"+port, rules);
+        this.redisStorageService.putDegrade(app, rules);
         return sentinelApiClient.setDegradeRuleOfMachine(app, ip, port, rules);
     }
 

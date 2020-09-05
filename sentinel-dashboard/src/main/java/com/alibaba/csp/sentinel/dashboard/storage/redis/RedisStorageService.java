@@ -7,6 +7,8 @@ import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.SystemRuleEntit
 import com.alibaba.csp.sentinel.util.StringUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -31,9 +33,16 @@ public class RedisStorageService {
     @Autowired
     private StringRedisTemplate redisTemplate;
 
+    private Logger logger = LoggerFactory.getLogger(RedisStorageService.class);
+
     public void putAPI(String app,List<ApiDefinitionEntity> list){
         String key = PREFIX + app + ":" + KEY_API;
-        this.redisTemplate.opsForValue().set(key, JSON.toJSONString(list), 0);
+        if(list == null){
+            list = new ArrayList<>();
+        }
+        String value = JSON.toJSONString(list);
+        logger.debug("save api: {}", value);
+        this.redisTemplate.opsForValue().set(key, value);
     }
 
     public List<ApiDefinitionEntity> getAPI(String app){
@@ -47,7 +56,12 @@ public class RedisStorageService {
 
     public void putFlow(String app,List<GatewayFlowRuleEntity> list){
         String key = PREFIX + app + ":" + KEY_FLOW;
-        this.redisTemplate.opsForValue().set(key, JSON.toJSONString(list), 0);
+        if(list == null){
+            list = new ArrayList<>();
+        }
+        String value = JSON.toJSONString(list);
+        logger.debug("save flow: {}", value);
+        this.redisTemplate.opsForValue().set(key, value);
     }
 
     public List<GatewayFlowRuleEntity> getFlow(String app){
@@ -61,7 +75,12 @@ public class RedisStorageService {
 
     public void putDegrade(String app,List<DegradeRuleEntity> list){
         String key = PREFIX + app + ":" + KEY_DEGRADE;
-        this.redisTemplate.opsForValue().set(key, JSON.toJSONString(list), 0);
+        if(list == null){
+            list = new ArrayList<>();
+        }
+        String value = JSON.toJSONString(list);
+        logger.debug("save degrade: {}", value);
+        this.redisTemplate.opsForValue().set(key, value);
     }
 
     public List<DegradeRuleEntity> getDegrade(String app){
@@ -76,7 +95,12 @@ public class RedisStorageService {
 
     public void putSystem(String app,List<SystemRuleEntity> list){
         String key = PREFIX + app + ":" + KEY_DEGRADE;
-        this.redisTemplate.opsForValue().set(key, JSON.toJSONString(list), 0);
+        if(list == null){
+            list = new ArrayList<>();
+        }
+        String value = JSON.toJSONString(list);
+        logger.debug("save system: {}", value);
+        this.redisTemplate.opsForValue().set(key, value);
     }
 
     public List<SystemRuleEntity> getSystem(String app){
