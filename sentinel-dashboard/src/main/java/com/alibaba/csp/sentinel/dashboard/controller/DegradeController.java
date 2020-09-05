@@ -75,13 +75,12 @@ public class DegradeController {
             return Result.ofFail(-1, "port can't be null");
         }
         try {
-            String key = String.format("%s:%s:%s", app, ip, port);
-            List<DegradeRuleEntity> rules = this.redisStorageService.getDegrade(key);
+            List<DegradeRuleEntity> rules = this.redisStorageService.getDegrade(app);
             if(rules!=null&&!rules.isEmpty()){
                 this.sentinelApiClient.setDegradeRuleOfMachine(app, ip, port, rules);
             }else{
                 rules = sentinelApiClient.fetchDegradeRuleOfMachine(app, ip, port);
-                redisStorageService.putDegrade(key, rules);
+                redisStorageService.putDegrade(app, rules);
             }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);

@@ -20,6 +20,7 @@ import com.alibaba.csp.sentinel.dashboard.auth.AuthService;
 import com.alibaba.csp.sentinel.dashboard.client.SentinelApiClient;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.ApiDefinitionEntity;
 import com.alibaba.csp.sentinel.dashboard.datasource.entity.gateway.ApiPredicateItemEntity;
+import com.alibaba.csp.sentinel.dashboard.datasource.entity.rule.DegradeRuleEntity;
 import com.alibaba.csp.sentinel.dashboard.discovery.MachineInfo;
 import com.alibaba.csp.sentinel.dashboard.domain.Result;
 import com.alibaba.csp.sentinel.dashboard.domain.vo.gateway.api.AddApiReqVo;
@@ -74,13 +75,14 @@ public class GatewayApiController {
         }
 
         try {
-            List<ApiDefinitionEntity> apis = sentinelApiClient.fetchApis(app, ip, port).get();
-            if(apis == null || apis.isEmpty()){
-                apis = this.redisStorageService.getAPI(app+":"+ip+":"+port);
-                if(apis!=null&&!apis.isEmpty()){
-                    this.sentinelApiClient.modifyApis(app, ip, port, apis);
-                }
+            List<ApiDefinitionEntity> apis = this.redisStorageService.getAPI(app);
+            if(apis!=null&&!apis.isEmpty()){
+                this.sentinelApiClient.modifyApis(app, ip, port, apis);
+            }else{
+                apis = sentinelApiClient.fetchApis(app, ip, port).get();
+                redisStorageService.putAPI(app, apis);
             }
+
             repository.saveAll(apis);
             return Result.ofSuccess(apis);
         } catch (Throwable throwable) {
@@ -267,7 +269,7 @@ public class GatewayApiController {
 
     private boolean publishApis(String app, String ip, Integer port) {
         List<ApiDefinitionEntity> apis = repository.findAllByMachine(MachineInfo.of(app, ip, port));
-        this.redisStorageService.putAPI(app+":"+ip+":"+port, apis);
+        this.redisStorageService.putAPI(app, apis);
         return sentinelApiClient.modifyApis(app, ip, port, apis);
     }
 }

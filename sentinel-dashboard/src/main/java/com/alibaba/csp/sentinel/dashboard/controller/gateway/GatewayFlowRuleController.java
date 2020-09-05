@@ -86,11 +86,10 @@ public class GatewayFlowRuleController {
         }
 
         try {
-            String key = app+":"+ip+":"+port;
-            List<GatewayFlowRuleEntity> rules = this.redisStorageService.getFlow(key);
+            List<GatewayFlowRuleEntity> rules = this.redisStorageService.getFlow(app);
             if(rules.isEmpty()){
                 rules = sentinelApiClient.fetchGatewayFlowRules(app, ip, port).get();
-                this.redisStorageService.putFlow(key, rules);
+                this.redisStorageService.putFlow(app, rules);
                 repository.saveAll(rules);
             }else{
                 repository.saveAll(rules);
@@ -446,8 +445,7 @@ public class GatewayFlowRuleController {
     private boolean publishRules(String app, String ip, Integer port, boolean publish) {
         List<GatewayFlowRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
         if(publish){
-            String key = app+":"+ip+":"+port;
-           this.redisStorageService.putFlow(key, rules);
+           this.redisStorageService.putFlow(app, rules);
         }
         return sentinelApiClient.modifyGatewayFlowRules(app, ip, port, rules);
     }

@@ -77,13 +77,12 @@ public class SystemController {
             return checkResult;
         }
         try {
-            String key = String.format("%s:%s:%s", app, ip, port);
-            List<SystemRuleEntity> rules = this.redisStorageService.getSystem(key);
+            List<SystemRuleEntity> rules = this.redisStorageService.getSystem(app);
             if(rules!=null&&!rules.isEmpty()){
                 this.sentinelApiClient.setSystemRuleOfMachine(app, ip, port, rules);
             }else{
                 rules = sentinelApiClient.fetchSystemRuleOfMachine(app, ip, port);
-                this.redisStorageService.putSystem(key, rules);
+                this.redisStorageService.putSystem(app, rules);
             }
             rules = repository.saveAll(rules);
             return Result.ofSuccess(rules);
@@ -255,7 +254,7 @@ public class SystemController {
 
     private boolean publishRules(String app, String ip, Integer port) {
         List<SystemRuleEntity> rules = repository.findAllByMachine(MachineInfo.of(app, ip, port));
-        this.redisStorageService.putSystem(app+":"+ip+":"+port, rules);
+        this.redisStorageService.putSystem(app, rules);
         return sentinelApiClient.setSystemRuleOfMachine(app, ip, port, rules);
     }
 }
